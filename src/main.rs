@@ -1,42 +1,18 @@
+use helpers::print_all_issues;
 use regex::Regex;
 use std::{collections::HashSet, env, fs};
 
+mod helpers;
+mod types;
+
+use types::{Issue, IssueType};
+
 const FILE_EXT: &str = ".rs";
-
-enum IssueType {
-    Todo,
-    Fixme,
-    Other,
-}
-
-impl IssueType {
-    fn to_str(&self) -> String {
-        match &self {
-            IssueType::Todo => String::from("Todo"),
-            IssueType::Fixme => String::from("Fixme"),
-            IssueType::Other => String::from("Other"),
-        }
-    }
-
-    fn from_str(&self, string: &String) -> Self {
-        match string.as_str() {
-            "Todo" | "TODO" => IssueType::Todo,
-            "Fixme" | "FIXME" => IssueType::Fixme,
-            _ => IssueType::Other,
-        }
-    }
-}
-
-struct Issue {
-    issue_type: IssueType,
-    priority: i16,
-    description: String,
-}
 
 // TODO: first todo
 // TODO: second todo
 
-fn find_todos(file_contents: &String) {
+fn find_todos(file_contents: &String) -> Vec<Issue> {
     let re = Regex::new("^(//|#|--) (TOD(O*)|FIXM(E*)):(.*)").unwrap();
 
     // Capture 0 - Entire match
@@ -46,23 +22,40 @@ fn find_todos(file_contents: &String) {
     // Capture 4 - E | None
     // Capture 5 - Description
 
+    let mut vector: Vec<Issue> = Vec::new();
+
     for line in file_contents.split("\n") {
         if let Some(captures) = re.captures(&line) {
-            println!("\n\n{} \nCaptures = {:?}", line, captures);
+            if let Some(description) = captures.get(5) {
+                // only add if description exists
 
-            let todos = &captures[0];
-            let todo_len = &captures[3];
-            let todo_desc = &captures[3];
+                let issue_type = IssueType::from_str(&captures[2]);
 
-            println!(
-                "todos = {}, todo_len = {}, todo_desc = {}",
-                todos, todo_len, todo_desc
-            );
+                let priority = match issue_type {
+                    IssueType::Todo => {
+                        let string = &captures[3];
+                        string.len()
+                    }
+
+                    IssueType::Fixme => {
+                        let string = &captures[4];
+                        string.len()
+                    }
+                };
+
+                vector.push(Issue {
+                    issue_type,
+                    priority,
+                    description: description.as_str().to_string(),
+                });
+            };
         }
     }
+
+    vector
 }
 
-fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>) {
+fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>, all_issues: &mut Vec<Issue>) {
     let files = fs::read_dir(path).unwrap();
 
     for file in files {
@@ -72,15 +65,16 @@ fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>) {
 
         // TODO: Refactor this thing
         if current_path.is_file()
-            && (current_path_str.ends_with(FILE_EXT) || current_path_str.ends_with(".py"))
+            && (current_path_str.ends_with(FILE_EXT) || current_path_str.ends_with(".js"))
         {
             match fs::read_to_string(&current_path) {
                 Ok(file_content) => {
-                    find_todos(&file_content);
+                    all_issues.extend(find_todos(&file_content));
                 }
 
                 Err(error) => {
                     println!("Failed to read file {}. Error: {}", current_path_str, error);
+                    continue;
                 }
             }
         } else if current_path.is_dir() {
@@ -93,7 +87,11 @@ fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>) {
                 continue;
             }
 
-            walk_dirs(&String::from(current_path_str), folders_to_ignore);
+            walk_dirs(
+                &String::from(current_path_str),
+                folders_to_ignore,
+                all_issues,
+            );
         }
     }
 }
@@ -110,5 +108,9 @@ fn main() {
         cwd = &args[1];
     }
 
-    walk_dirs(cwd, &folders_to_ignore);
+    let mut all_issues: Vec<Issue> = Vec::new();
+
+    walk_dirs(cwd, &folders_to_ignore, &mut all_issues);
+
+    print_all_issues(&all_issues);
 }
