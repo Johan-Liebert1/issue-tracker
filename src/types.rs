@@ -1,3 +1,5 @@
+use crate::constants::{CYAN, GREEN, MAGENTA};
+
 #[derive(Debug)]
 pub enum IssueType {
     Todo,
@@ -5,10 +7,10 @@ pub enum IssueType {
 }
 
 impl IssueType {
-    pub fn to_str(&self) -> String {
+    pub fn to_colored_str(&self) -> String {
         match &self {
-            IssueType::Todo => String::from("Todo"),
-            IssueType::Fixme => String::from("Fixme"),
+            IssueType::Todo => format!("{}Todo ", CYAN),
+            IssueType::Fixme => format!("{}Fixme ", MAGENTA),
         }
     }
 
@@ -30,6 +32,12 @@ pub struct Issue {
 
 impl Issue {
     pub fn to_str(&self) -> String {
-        todo!();
+        format!(
+            "{}({}) {}{}",
+            self.issue_type.to_colored_str(),
+            self.priority,
+            GREEN,
+            self.description,
+        )
     }
 }

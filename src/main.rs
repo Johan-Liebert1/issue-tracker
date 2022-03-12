@@ -2,6 +2,7 @@ use helpers::print_all_issues;
 use regex::Regex;
 use std::{collections::HashSet, env, fs};
 
+mod constants;
 mod helpers;
 mod types;
 
@@ -65,7 +66,7 @@ fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>, all_issues: &mut 
 
         // TODO: Refactor this thing
         if current_path.is_file()
-            && (current_path_str.ends_with(FILE_EXT) || current_path_str.ends_with(".js"))
+            && (current_path_str.ends_with(FILE_EXT) || current_path_str.ends_with(".py"))
         {
             match fs::read_to_string(&current_path) {
                 Ok(file_content) => {
