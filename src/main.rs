@@ -1,12 +1,15 @@
 use helpers::print_all_issues;
 use regex::Regex;
-use std::{collections::HashSet, env, fs};
+use std::{
+    collections::{HashMap, HashSet},
+    env, fs,
+};
 
 mod constants;
 mod helpers;
 mod types;
 
-use types::{Issue, IssueType};
+use types::{Issue, IssueType, VectorHashMap};
 
 const FILE_EXT: &str = ".rs";
 
@@ -14,7 +17,7 @@ const FILE_EXT: &str = ".rs";
 // TODO: second todo
 
 fn find_todos(file_contents: &String) -> Vec<Issue> {
-    let re = Regex::new("^(//|#|--) (TOD(O*)|FIXM(E*)):(.*)").unwrap();
+    let re = Regex::new(r#"([/#-]*)[\s]*(TOD(O*)|FIXM(E*)):(.*)"#).unwrap();
 
     // Capture 0 - Entire match
     // Capture 1 - Comment symbol
@@ -56,7 +59,7 @@ fn find_todos(file_contents: &String) -> Vec<Issue> {
     vector
 }
 
-fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>, all_issues: &mut Vec<Issue>) {
+fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>, all_issues: &mut VectorHashMap) {
     let files = fs::read_dir(path).unwrap();
 
     for file in files {
@@ -70,7 +73,11 @@ fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>, all_issues: &mut 
         {
             match fs::read_to_string(&current_path) {
                 Ok(file_content) => {
-                    all_issues.extend(find_todos(&file_content));
+                    let issues_in_file = find_todos(&file_content);
+
+                    if issues_in_file.len() > 0 {
+                        all_issues.insert(current_path_str.to_string(), issues_in_file);
+                    }
                 }
 
                 Err(error) => {
@@ -109,9 +116,9 @@ fn main() {
         cwd = &args[1];
     }
 
-    let mut all_issues: Vec<Issue> = Vec::new();
+    let mut hash: VectorHashMap = HashMap::new();
 
-    walk_dirs(cwd, &folders_to_ignore, &mut all_issues);
+    walk_dirs(cwd, &folders_to_ignore, &mut hash);
 
-    print_all_issues(&all_issues);
+    print_all_issues(&hash);
 }

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::constants::{CYAN, GREEN, MAGENTA};
 
 #[derive(Debug)]
@@ -41,3 +43,5 @@ impl Issue {
         )
     }
 }
+
+pub type VectorHashMap = HashMap<String, Vec<Issue>>;

@@ -1,6 +1,7 @@
-use std::io::{self, Write};
-
-use crate::{constants::RESET, types::Issue};
+use crate::{
+    constants::{RESET, YELLOW},
+    types::VectorHashMap,
+};
 
 #[allow(dead_code)]
 fn color_print(color: &'static str, string: &String) {
@@ -9,10 +10,14 @@ fn color_print(color: &'static str, string: &String) {
     println!("{}", string);
 }
 
-pub fn print_all_issues(all_issues: &Vec<Issue>) {
-    for issue in all_issues {
-        println!("{}", issue.to_str());
+pub fn print_all_issues(all_files_issues: &VectorHashMap) {
+    for (file, all_issues) in all_files_issues {
+        println!("{}{}", YELLOW, file);
+        for issue in all_issues {
+            println!("{}", issue.to_str());
+        }
+
+        println!("");
     }
-    print!("{}", RESET);
-    io::stdout().flush().unwrap();
+    println!("{}", RESET);
 }
