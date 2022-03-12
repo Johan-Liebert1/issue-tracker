@@ -34,12 +34,18 @@ pub struct Issue {
 
 impl Issue {
     pub fn to_str(&self) -> String {
+        let to_slice_to = if self.description.len() < 100 {
+            self.description.len()
+        } else {
+            100
+        };
+
         format!(
             "{}({}) {}{}",
             self.issue_type.to_colored_str(),
             self.priority,
             GREEN,
-            self.description,
+            &self.description[..to_slice_to],
         )
     }
 }

@@ -11,8 +11,6 @@ mod types;
 
 use types::{Issue, IssueType, VectorHashMap};
 
-const FILE_EXT: &str = ".rs";
-
 // TODO: first todo
 // TODO: second todo
 
@@ -59,6 +57,21 @@ fn find_todos(file_contents: &String) -> Vec<Issue> {
     vector
 }
 
+fn is_file_ext_valid(path: &str) -> bool {
+    // TODO: Refactor this into a HashSet
+    let allowed_extensions = [
+        ".py", ".rs", ".c", ".cpp", ".js", ".ts", ".tsx", ".sql", ".go",
+    ];
+
+    for ext in allowed_extensions {
+        if path.ends_with(ext) {
+            return true;
+        }
+    }
+
+    false
+}
+
 fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>, all_issues: &mut VectorHashMap) {
     let files = fs::read_dir(path).unwrap();
 
@@ -68,9 +81,7 @@ fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>, all_issues: &mut 
         let current_path_str = current_path.to_str().unwrap();
 
         // TODO: Refactor this thing
-        if current_path.is_file()
-            && (current_path_str.ends_with(FILE_EXT) || current_path_str.ends_with(".py"))
-        {
+        if current_path.is_file() && is_file_ext_valid(current_path_str) {
             match fs::read_to_string(&current_path) {
                 Ok(file_content) => {
                     let issues_in_file = find_todos(&file_content);
@@ -106,7 +117,7 @@ fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>, all_issues: &mut 
 
 fn main() {
     let folders_to_ignore: HashSet<&str> =
-        HashSet::from([".git", "node_modules", "target", "dist", "env"]);
+        HashSet::from([".git", "node_modules", "target", "dist", "env", ".next"]);
 
     let args: Vec<String> = env::args().collect();
 

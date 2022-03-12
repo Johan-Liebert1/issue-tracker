@@ -12,9 +12,10 @@ fn color_print(color: &'static str, string: &String) {
 
 pub fn print_all_issues(all_files_issues: &VectorHashMap) {
     for (file, all_issues) in all_files_issues {
-        println!("{}{}", YELLOW, file);
+        color_print(YELLOW, file);
+
         for issue in all_issues {
-            println!("{}", issue.to_str());
+            println!("{}{}", issue.to_str(), RESET);
         }
 
         println!("");
