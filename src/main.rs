@@ -11,11 +11,8 @@ mod types;
 
 use types::{Issue, IssueType, VectorHashMap};
 
-// TODO: first todo
-// TODO: second todo
-
 fn find_todos(file_contents: &String) -> Vec<Issue> {
-    let re = Regex::new(r#"([/#-]*)[\s]*(TOD(O*)|FIXM(E*)):(.*)"#).unwrap();
+    let re = Regex::new(r#"([/#"-]*)[\s]*(TOD(O*)|FIXM(E*)):(.*)"#).unwrap();
 
     // Capture 0 - Entire match
     // Capture 1 - Comment symbol
@@ -26,7 +23,7 @@ fn find_todos(file_contents: &String) -> Vec<Issue> {
 
     let mut vector: Vec<Issue> = Vec::new();
 
-    for line in file_contents.split("\n") {
+    for (line_number, line) in file_contents.split("\n").enumerate() {
         if let Some(captures) = re.captures(&line) {
             if let Some(description) = captures.get(5) {
                 // only add if description exists
@@ -49,6 +46,7 @@ fn find_todos(file_contents: &String) -> Vec<Issue> {
                     issue_type,
                     priority,
                     description: description.as_str().to_string(),
+                    line_number: line_number + 1,
                 });
             };
         }
@@ -58,7 +56,6 @@ fn find_todos(file_contents: &String) -> Vec<Issue> {
 }
 
 fn is_file_ext_valid(path: &str) -> bool {
-    // TODO: Refactor this into a HashSet
     let allowed_extensions = [
         ".py", ".rs", ".c", ".cpp", ".js", ".ts", ".tsx", ".sql", ".go",
     ];
@@ -80,7 +77,6 @@ fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>, all_issues: &mut 
 
         let current_path_str = current_path.to_str().unwrap();
 
-        // TODO: Refactor this thing
         if current_path.is_file() && is_file_ext_valid(current_path_str) {
             match fs::read_to_string(&current_path) {
                 Ok(file_content) => {
@@ -97,11 +93,11 @@ fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>, all_issues: &mut 
                 }
             }
         } else if current_path.is_dir() {
-            // ignore symlinks
             let splits: Vec<&str> = current_path_str.split("/").collect();
             let dir_name = *splits.last().unwrap();
 
-            if folders_to_ignore.contains(dir_name) {
+            // ignore hiddent files
+            if folders_to_ignore.contains(dir_name) || dir_name.starts_with(".") {
                 println!("{} in ignore list. Igonoring", dir_name);
                 continue;
             }
@@ -116,8 +112,7 @@ fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>, all_issues: &mut 
 }
 
 fn main() {
-    let folders_to_ignore: HashSet<&str> =
-        HashSet::from([".git", "node_modules", "target", "dist", "env", ".next"]);
+    let folders_to_ignore: HashSet<&str> = HashSet::from(["node_modules", "target", "dist", "env"]);
 
     let args: Vec<String> = env::args().collect();
 
