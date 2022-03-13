@@ -1,6 +1,13 @@
-use std::collections::HashMap;
+use std::{
+    collections::{HashMap, HashSet},
+    path::Path,
+    process::exit,
+};
 
-use crate::constants::{CYAN, GREEN, MAGENTA};
+use crate::{
+    constants::{BLUE, CYAN, GREEN, MAGENTA, RED},
+    helpers::color_print,
+};
 
 #[derive(Debug)]
 pub enum IssueType {
@@ -51,3 +58,37 @@ impl Issue {
 }
 
 pub type VectorHashMap = HashMap<String, Vec<Issue>>;
+
+#[derive(Debug)]
+pub struct Config {
+    pub folders_to_ignore: HashSet<&'static str>,
+    pub allowed_extensions: Vec<&'static str>,
+    pub cwd: String,
+    pub config_file_name: String,
+}
+
+impl Config {
+    /// 1. Checks if the provided cwd exists or not
+    /// 2. Checks if a config file exists, and if it does, gets the config from that file
+    pub fn set_from_file(&mut self) {
+        let cwd_path = Path::new(&self.cwd);
+
+        if !cwd_path.exists() {
+            color_print(
+                RED,
+                &format!("Path '{}' does not exist", cwd_path.to_str().unwrap()),
+            );
+            exit(1);
+        }
+
+        let config_file_exists = cwd_path.join(&self.config_file_name).exists();
+
+        if !config_file_exists {
+            color_print(
+                BLUE,
+                &String::from("Config file not found. Using default config\n"),
+            );
+            return;
+        }
+    }
+}

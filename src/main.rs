@@ -1,15 +1,15 @@
-use helpers::print_all_issues;
+use constants::BLUE;
+use helpers::{color_print, print_all_issues};
 use regex::Regex;
 use std::{
     collections::{HashMap, HashSet},
     env, fs,
 };
+use types::{Config, Issue, IssueType, VectorHashMap};
 
 mod constants;
 mod helpers;
 mod types;
-
-use types::{Issue, IssueType, VectorHashMap};
 
 fn find_todos(file_contents: &String) -> Vec<Issue> {
     let re = Regex::new(r#"([/#"-]*)[\s]*(TOD(O*)|FIXM(E*)):(.*)"#).unwrap();
@@ -55,12 +55,8 @@ fn find_todos(file_contents: &String) -> Vec<Issue> {
     vector
 }
 
-fn is_file_ext_valid(path: &str) -> bool {
-    let allowed_extensions = [
-        ".py", ".rs", ".c", ".cpp", ".js", ".ts", ".tsx", ".sql", ".go",
-    ];
-
-    for ext in allowed_extensions {
+fn is_file_ext_valid(path: &str, config: &Config) -> bool {
+    for ext in config.allowed_extensions.iter() {
         if path.ends_with(ext) {
             return true;
         }
@@ -69,7 +65,12 @@ fn is_file_ext_valid(path: &str) -> bool {
     false
 }
 
-fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>, all_issues: &mut VectorHashMap) {
+fn walk_dirs(
+    path: &str,
+    config: &Config,
+    all_issues: &mut VectorHashMap,
+    num_files_scanned: &mut i32,
+) {
     let files = fs::read_dir(path).unwrap();
 
     for file in files {
@@ -77,7 +78,7 @@ fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>, all_issues: &mut 
 
         let current_path_str = current_path.to_str().unwrap();
 
-        if current_path.is_file() && is_file_ext_valid(current_path_str) {
+        if current_path.is_file() && is_file_ext_valid(current_path_str, config) {
             match fs::read_to_string(&current_path) {
                 Ok(file_content) => {
                     let issues_in_file = find_todos(&file_content);
@@ -85,6 +86,8 @@ fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>, all_issues: &mut 
                     if issues_in_file.len() > 0 {
                         all_issues.insert(current_path_str.to_string(), issues_in_file);
                     }
+
+                    *num_files_scanned += 1;
                 }
 
                 Err(error) => {
@@ -96,35 +99,52 @@ fn walk_dirs(path: &String, folders_to_ignore: &HashSet<&str>, all_issues: &mut 
             let splits: Vec<&str> = current_path_str.split("/").collect();
             let dir_name = *splits.last().unwrap();
 
-            // ignore hiddent files
-            if folders_to_ignore.contains(dir_name) || dir_name.starts_with(".") {
-                println!("{} in ignore list. Igonoring", dir_name);
+            // ignore hidden files
+            if config.folders_to_ignore.contains(dir_name) || dir_name.starts_with(".") {
+                println!("Ignoring {}", &current_path_str[config.cwd.len() + 1..]);
                 continue;
             }
 
             walk_dirs(
                 &String::from(current_path_str),
-                folders_to_ignore,
+                config,
                 all_issues,
+                num_files_scanned,
             );
         }
     }
 }
 
 fn main() {
-    let folders_to_ignore: HashSet<&str> = HashSet::from(["node_modules", "target", "dist", "env"]);
-
     let args: Vec<String> = env::args().collect();
+    let current_dir = env::current_dir().unwrap();
 
-    let mut cwd = &String::from(env::current_dir().unwrap().to_str().unwrap());
+    let mut cwd = current_dir.to_str().unwrap();
 
     if args.len() > 1 {
         cwd = &args[1];
     }
 
+    let mut config: Config = Config {
+        folders_to_ignore: HashSet::from(["node_modules", "target", "dist", "env"]),
+        allowed_extensions: vec![
+            ".py", ".rs", ".c", ".cpp", ".js", ".ts", ".tsx", ".sql", ".go",
+        ],
+        cwd: String::from(cwd),
+        config_file_name: String::from("it.conf"),
+    };
+
+    config.set_from_file();
+
+    let mut num_files_scanned = 0;
     let mut hash: VectorHashMap = HashMap::new();
 
-    walk_dirs(cwd, &folders_to_ignore, &mut hash);
+    walk_dirs(&cwd, &config, &mut hash, &mut num_files_scanned);
 
     print_all_issues(&hash);
+
+    color_print(
+        BLUE,
+        &format!("Successfully scanned {} files", num_files_scanned),
+    );
 }
