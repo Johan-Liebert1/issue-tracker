@@ -1,5 +1,7 @@
 use std::process::{self, Output};
 
+use crate::types::{CreateIssueParams, Issue};
+
 /*
 curl
 -X POST
@@ -23,4 +25,25 @@ pub fn get_repo_url() -> Result<Output, std::io::Error> {
         .arg("--get")
         .arg("remote.origin.url")
         .output()
+}
+
+pub fn create_issue(
+    issue: &Issue,
+    create_issue_params: &CreateIssueParams,
+) -> Result<Output, std::io::Error> {
+    let mut curl_command = process::Command::new("curl");
+
+    curl_command.args([
+        "-X",
+        "POST",
+        "-H",
+        "\"Accept: application/vnd.github.v3+json\"",
+        create_issue_params.repo_url,
+        "-d",
+        &format!("'{{\"title\": \"{}\"}}'", issue.description),
+        "-u",
+        &format!("{}:{}", create_issue_params.github_username, "github token"),
+    ]);
+
+    curl_command.output()
 }

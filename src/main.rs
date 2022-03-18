@@ -1,10 +1,11 @@
 use constants::BLUE;
 use github::{get_repo_url, get_username};
-use helpers::{color_print, print_all_issues};
+use helpers::{color_print, print_all_issues, prompt_yes_or_no};
 use regex::Regex;
 use std::{
     collections::{HashMap, HashSet},
     env, fs,
+    io::Write,
 };
 use types::{Config, Issue, IssueType, VectorHashMap};
 
@@ -148,10 +149,15 @@ fn main() {
 
     walk_dirs(&cwd, &config, &mut hash, &mut num_files_scanned);
 
-    print_all_issues(&mut hash);
+    print_all_issues(&mut hash, &config, false);
 
     color_print(
         BLUE,
         &format!("Successfully scanned {} files", num_files_scanned),
+        true,
     );
+
+    if prompt_yes_or_no("\nCreate issues? (y/n) > ") {
+        print_all_issues(&mut hash, &config, true);
+    }
 }

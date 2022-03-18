@@ -79,6 +79,7 @@ impl Config {
             color_print(
                 RED,
                 &format!("Path '{}' does not exist", cwd_path.to_str().unwrap()),
+                true,
             );
             exit(1);
         }
@@ -89,8 +90,16 @@ impl Config {
             color_print(
                 BLUE,
                 &String::from("Config file not found. Using default config\n"),
+                true,
             );
             return;
         }
     }
+}
+
+#[derive(Debug)]
+pub struct CreateIssueParams<'a> {
+    pub repo_url: &'a String,
+    pub github_username: &'a String,
+    pub access_token: &'a String,
 }
