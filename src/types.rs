@@ -65,6 +65,8 @@ pub struct Config {
     pub allowed_extensions: Vec<&'static str>,
     pub cwd: String,
     pub config_file_name: String,
+    pub git_username: Result<std::process::Output, std::io::Error>,
+    pub repo_url: Result<std::process::Output, std::io::Error>,
 }
 
 impl Config {

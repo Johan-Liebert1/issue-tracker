@@ -1,4 +1,5 @@
 use constants::BLUE;
+use github::{get_repo_url, get_username};
 use helpers::{color_print, print_all_issues};
 use regex::Regex;
 use std::{
@@ -7,7 +8,9 @@ use std::{
 };
 use types::{Config, Issue, IssueType, VectorHashMap};
 
+mod argparse;
 mod constants;
+mod github;
 mod helpers;
 mod types;
 
@@ -132,16 +135,20 @@ fn main() {
         ],
         cwd: String::from(cwd),
         config_file_name: String::from("it.conf"),
+        git_username: get_username(),
+        repo_url: get_repo_url(),
     };
 
     config.set_from_file();
+
+    std::env::set_current_dir(&config.cwd).unwrap();
 
     let mut num_files_scanned = 0;
     let mut hash: VectorHashMap = HashMap::new();
 
     walk_dirs(&cwd, &config, &mut hash, &mut num_files_scanned);
 
-    print_all_issues(&hash);
+    print_all_issues(&mut hash);
 
     color_print(
         BLUE,
