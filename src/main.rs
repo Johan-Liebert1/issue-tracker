@@ -1,15 +1,14 @@
 use constants::BLUE;
-use github::{get_repo_url, get_username};
 use helpers::{color_print, print_all_issues, prompt_yes_or_no};
 use regex::Regex;
 use std::{
     collections::{HashMap, HashSet},
     env, fs,
-    io::Write,
 };
 use types::{Config, Issue, IssueType, VectorHashMap};
 
-mod argparse;
+use crate::constants::RED;
+
 mod constants;
 mod github;
 mod helpers;
@@ -130,17 +129,22 @@ fn main() {
     }
 
     let mut config: Config = Config {
-        folders_to_ignore: HashSet::from(["node_modules", "target", "dist", "env"]),
+        folders_to_ignore: HashSet::from(["node_modules", "target", "dist", "env", "tests"]),
         allowed_extensions: vec![
             ".py", ".rs", ".c", ".cpp", ".js", ".ts", ".tsx", ".sql", ".go",
         ],
-        cwd: String::from(cwd),
-        config_file_name: String::from("it.conf"),
-        git_username: get_username(),
-        repo_url: get_repo_url(),
+        cwd: &String::from(cwd),
+        config_file_name: &String::from("it.conf"),
+        git_username: &mut String::from(""),
+        repo_url: &mut String::from(""),
+        repo_name: &mut String::from(""),
+        git_access_token: &mut String::from(""),
+        all_git_creds_available: true,
+        git_creds_unavailable: Vec::new(),
     };
 
     config.set_from_file();
+    config.set_git_credentials();
 
     std::env::set_current_dir(&config.cwd).unwrap();
 
@@ -158,6 +162,20 @@ fn main() {
     );
 
     if prompt_yes_or_no("\nCreate issues? (y/n) > ") {
+        if !config.all_git_creds_available {
+            color_print(
+                RED,
+                &String::from("The following credentials not found. Cannot proceed"),
+                true,
+            );
+
+            for cred in &config.git_creds_unavailable {
+                println!("{} ", cred);
+            }
+
+            return;
+        }
+
         print_all_issues(&mut hash, &config, true);
     }
 }
