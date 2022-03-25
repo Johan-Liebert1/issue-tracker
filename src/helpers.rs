@@ -7,17 +7,17 @@ use crate::{
 };
 
 // TODO: make this return either a bool or a string so we can check if input == "exit" to exit the program
-pub fn prompt_yes_or_no(prompt: &str) -> bool {
-    let mut create_issue = String::new();
+pub fn prompt_yes_or_no(prompt: &str) -> (bool, String) {
+    let mut user_input = String::new();
 
     print!("{}", prompt);
     std::io::stdout().flush().unwrap();
-    std::io::stdin().read_line(&mut create_issue).unwrap();
+    std::io::stdin().read_line(&mut user_input).unwrap();
 
-    if create_issue.trim().to_lowercase() == "y" {
-        true
+    if user_input.trim().to_lowercase() == "y" {
+        (true, user_input)
     } else {
-        false
+        (false, user_input)
     }
 }
 
@@ -34,9 +34,9 @@ pub fn color_print(color: &'static str, string: &String, new_line: bool) {
 }
 
 pub fn print_all_issues(all_files_issues: &mut VectorHashMap, config: &Config, create_issue: bool) {
-    let create_issue_prompt = "Create an issue? (y/n) ";
+    let create_issue_prompt = "Create an issue? (y/n/exit) ";
 
-    for (file, all_issues) in all_files_issues {
+    'outer: for (file, all_issues) in all_files_issues {
         color_print(YELLOW, file, true);
 
         all_issues.sort_by(|item1, item2| item2.priority.cmp(&item1.priority));
@@ -46,10 +46,11 @@ pub fn print_all_issues(all_files_issues: &mut VectorHashMap, config: &Config, c
 
             if create_issue {
                 // color_print(LIGHT_GREEN, create_issue_prompt, false);
-                let create = prompt_yes_or_no(create_issue_prompt);
-
+                let (create, input) = prompt_yes_or_no(create_issue_prompt);
                 if create {
                     println!("{:?}", github::create_issue(issue, &config).unwrap());
+                } else if input.trim().to_lowercase() == "exit" {
+                    break 'outer;
                 }
             }
         }

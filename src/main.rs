@@ -161,7 +161,7 @@ fn main() {
         true,
     );
 
-    if prompt_yes_or_no("\nCreate issues? (y/n) > ") {
+    if prompt_yes_or_no("\nCreate issues? (y/n) > ").0 {
         if !config.all_git_creds_available {
             color_print(
                 RED,

@@ -21,6 +21,7 @@ pub fn get_repo_url() -> Result<Output, std::io::Error> {
         .output()
 }
 
+// TODOOOOOO: Return proper result from this function
 pub fn create_issue(issue: &Issue, config: &Config) -> Result<(), ()> {
     let mut json_body = HashMap::new();
 
