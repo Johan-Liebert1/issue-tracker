@@ -43,10 +43,7 @@ pub fn create_issue(issue: &Issue, config: &Config) -> Result<(), ()> {
 
     println!("builder = {:?}\n", request_builder);
 
-    let res = request_builder.send();
-
-    println!("res = {:?}", res.unwrap().text().unwrap());
-    println!("config = {:?}", config);
+    let _res = request_builder.send();
 
     Ok(())
 }

@@ -146,6 +146,8 @@ fn main() {
     config.set_from_file();
     config.set_git_credentials();
 
+    // println!("Config = {:#?}", config);
+
     std::env::set_current_dir(&config.cwd).unwrap();
 
     let mut num_files_scanned = 0;
