@@ -34,11 +34,19 @@ impl IssueType {
 }
 
 #[derive(Debug)]
+pub struct FileLines {
+    pub line_number: usize,
+    pub line_text: String,
+}
+
+#[derive(Debug)]
 pub struct Issue {
     pub issue_type: IssueType,
     pub priority: usize,
     pub description: String,
     pub line_number: usize,
+    pub file_name: String,
+    pub more_info: Vec<FileLines>,
 }
 
 impl Issue {

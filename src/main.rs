@@ -5,7 +5,7 @@ use std::{
     collections::{HashMap, HashSet},
     env, fs,
 };
-use types::{Config, Issue, IssueType, VectorHashMap};
+use types::{Config, FileLines, Issue, IssueType, VectorHashMap};
 
 use crate::constants::RED;
 
@@ -14,8 +14,9 @@ mod github;
 mod helpers;
 mod types;
 
-fn find_todos(file_contents: &String) -> Vec<Issue> {
+fn find_todos(file_contents: &String, file_name: &str) -> Vec<Issue> {
     let re = Regex::new(r#"([/#"-]*)[\s]*(TOD(O*)|FIXM(E*)):(.*)"#).unwrap();
+    let file_name_str = String::from(file_name);
 
     // Capture 0 - Entire match
     // Capture 1 - Comment symbol
@@ -26,7 +27,9 @@ fn find_todos(file_contents: &String) -> Vec<Issue> {
 
     let mut vector: Vec<Issue> = Vec::new();
 
-    for (line_number, line) in file_contents.split("\n").enumerate() {
+    let enumerated_file_contents: Vec<&str> = file_contents.split("\n").collect();
+
+    for (line_number, line) in enumerated_file_contents.iter().enumerate() {
         if let Some(captures) = re.captures(&line) {
             if let Some(description) = captures.get(5) {
                 // only add if description exists
@@ -45,11 +48,22 @@ fn find_todos(file_contents: &String) -> Vec<Issue> {
                     }
                 };
 
+                let mut file_lines: Vec<FileLines> = Vec::new();
+
+                for i in 0..5 {
+                    file_lines.push(FileLines {
+                        line_number: line_number + i,
+                        line_text: enumerated_file_contents[line_number + i].to_string(),
+                    })
+                }
+
                 vector.push(Issue {
                     issue_type,
                     priority,
                     description: description.as_str().to_string(),
                     line_number: line_number + 1,
+                    file_name: file_name_str.clone(), // this cloning is fine
+                    more_info: file_lines,
                 });
             };
         }
@@ -84,7 +98,7 @@ fn walk_dirs(
         if current_path.is_file() && is_file_ext_valid(current_path_str, config) {
             match fs::read_to_string(&current_path) {
                 Ok(file_content) => {
-                    let issues_in_file = find_todos(&file_content);
+                    let issues_in_file = find_todos(&file_content, current_path_str);
 
                     if issues_in_file.len() > 0 {
                         all_issues.insert(current_path_str.to_string(), issues_in_file);
