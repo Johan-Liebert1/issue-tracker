@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    constants::{BLUE, CYAN, GREEN, MAGENTA, RED},
+    constants::{BLUE, CYAN, GREEN, MAGENTA, RED, RESET},
     github,
     helpers::{self, color_print},
 };
@@ -50,9 +50,9 @@ pub struct Issue {
 }
 
 impl Issue {
-    pub fn to_str(&self) -> String {
+    pub fn to_str(&self, config: &Config) -> String {
         format!(
-            "{}{:>7}{:>10} {}{}",
+            "{}{:>7}{:>10} {}{} \n{}{}\n",
             self.issue_type.to_colored_str(),
             format!("({})", self.priority),
             format!("Line: {}", self.line_number),
@@ -61,8 +61,44 @@ impl Issue {
                 &self.description
             } else {
                 &self.description[..300]
-            }
+            },
+            RESET,
+            self.get_issue_comment(config)
         )
+    }
+
+    fn get_file_ext(&self) -> String {
+        let final_dot_pos = &self.file_name.rfind(".").unwrap();
+
+        String::from(&self.file_name[*final_dot_pos + 1..])
+    }
+
+    pub fn get_issue_comment(&self, config: &Config) -> String {
+        let backticks = String::from("```");
+
+        let mut comment = String::new();
+
+        let file_ext = self.get_file_ext();
+        let file_type = config.file_ext_to_markdown.get(file_ext.as_str()).unwrap();
+
+        comment.push_str("## ");
+        comment.push_str(&self.file_name);
+        comment.push_str("\n\n");
+
+        comment.push_str(&backticks);
+        comment.push_str(*file_type);
+
+        for line_info in &self.more_info {
+            comment.push('\n');
+            comment.push_str(&line_info.line_number.to_string());
+            comment.push(' ');
+            comment.push_str(&line_info.line_text);
+        }
+
+        comment.push('\n');
+        comment.push_str(&backticks);
+
+        comment
     }
 }
 
@@ -80,6 +116,7 @@ pub struct Config<'a> {
     pub git_access_token: &'a mut String,
     pub all_git_creds_available: bool,
     pub git_creds_unavailable: Vec<&'static str>,
+    pub file_ext_to_markdown: HashMap<&'static str, &'static str>,
 }
 
 impl Config<'_> {

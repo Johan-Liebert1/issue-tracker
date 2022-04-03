@@ -1,4 +1,5 @@
-use constants::BLUE;
+use constants::{BLUE, NUM_FILE_LINES};
+use github::placeholder_api_call;
 use helpers::{color_print, print_all_issues, prompt_yes_or_no};
 use regex::Regex;
 use std::{
@@ -50,10 +51,16 @@ fn find_todos(file_contents: &String, file_name: &str) -> Vec<Issue> {
 
                 let mut file_lines: Vec<FileLines> = Vec::new();
 
-                for i in 0..5 {
+                for i in 1..=NUM_FILE_LINES {
+                    let index = line_number + i;
+
+                    if index >= enumerated_file_contents.len() {
+                        break;
+                    }
+
                     file_lines.push(FileLines {
-                        line_number: line_number + i,
-                        line_text: enumerated_file_contents[line_number + i].to_string(),
+                        line_number: index,
+                        line_text: enumerated_file_contents[index].to_string(),
                     })
                 }
 
@@ -133,6 +140,11 @@ fn walk_dirs(
 }
 
 fn main() {
+    if false {
+        placeholder_api_call();
+        return;
+    }
+
     let args: Vec<String> = env::args().collect();
     let current_dir = env::current_dir().unwrap();
 
@@ -155,12 +167,24 @@ fn main() {
         git_access_token: &mut String::from(""),
         all_git_creds_available: true,
         git_creds_unavailable: Vec::new(),
+        file_ext_to_markdown: HashMap::from([
+            ("py", "python"),
+            ("rs", "rust"),
+            ("c", "c"),
+            ("cpp", "cpp"),
+            ("js", "js"),
+            ("ts", "ts"),
+            ("go", "go"),
+            ("java", "java"),
+            ("html", "html"),
+            ("css", "css"),
+        ]),
     };
 
     config.set_from_file();
     config.set_git_credentials();
 
-    // println!("Config = {:#?}", config);
+    println!("Config = {:#?}", config);
 
     std::env::set_current_dir(&config.cwd).unwrap();
 

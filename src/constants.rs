@@ -5,3 +5,4 @@ pub const RESET: &str = "\u{001b}[0m";
 pub const YELLOW: &str = "\u{001b}[33m";
 pub const BLUE: &str = "\u{001b}[34;1m";
 pub const RED: &str = "\u{001b}[31m";
+pub const NUM_FILE_LINES: usize = 10;

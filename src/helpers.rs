@@ -42,7 +42,7 @@ pub fn print_all_issues(all_files_issues: &mut VectorHashMap, config: &Config, c
         all_issues.sort_by(|item1, item2| item2.priority.cmp(&item1.priority));
 
         for issue in all_issues {
-            println!("{}{}", issue.to_str(), RESET);
+            println!("{}{}", issue.to_str(&config), RESET);
 
             if create_issue {
                 // color_print(LIGHT_GREEN, create_issue_prompt, false);
