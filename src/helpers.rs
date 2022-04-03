@@ -3,7 +3,7 @@ use std::io::Write;
 use crate::{
     constants::{RESET, YELLOW},
     github,
-    types::{Config, VectorHashMap},
+    types::{config::Config, misc::VectorHashMap},
 };
 
 // TODO: make this return either a bool or a string so we can check if input == "exit" to exit the program

@@ -3,7 +3,7 @@ use std::{
     process::{self, Output},
 };
 
-use crate::types::{Config, Issue};
+use crate::types::{config::Config, issue::Issue};
 
 pub fn get_username() -> Result<Output, std::io::Error> {
     process::Command::new("git")

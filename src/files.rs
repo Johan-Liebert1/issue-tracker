@@ -1,5 +1,11 @@
-use crate::constants::NUM_FILE_LINES;
-use crate::types::{Config, FileLines, Issue, IssueType, VectorHashMap};
+use crate::{
+    constants::NUM_FILE_LINES,
+    types::{
+        config::Config,
+        issue::{FileLines, Issue, IssueType},
+        misc::VectorHashMap,
+    },
+};
 
 use regex::Regex;
 use std::fs;

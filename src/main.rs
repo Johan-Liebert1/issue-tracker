@@ -6,7 +6,9 @@ use std::{
     collections::{HashMap, HashSet},
     env,
 };
-use types::{Config, VectorHashMap};
+use types::misc::VectorHashMap;
+
+use crate::types::config::Config;
 
 mod constants;
 mod files;
