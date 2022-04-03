@@ -2,10 +2,7 @@ use constants::{BLUE, RED};
 use files::walk_dirs;
 use github::placeholder_api_call;
 use helpers::{color_print, print_all_issues, prompt_yes_or_no};
-use std::{
-    collections::{HashMap, HashSet},
-    env,
-};
+use std::{collections::HashMap, env};
 use types::misc::VectorHashMap;
 
 use crate::types::config::Config;
@@ -31,32 +28,7 @@ fn main() {
         cwd = &args[1];
     }
 
-    let mut config: Config = Config {
-        folders_to_ignore: HashSet::from(["node_modules", "target", "dist", "env", "tests"]),
-        allowed_extensions: vec![
-            ".py", ".rs", ".c", ".cpp", ".js", ".ts", ".tsx", ".sql", ".go",
-        ],
-        cwd: &String::from(cwd),
-        config_file_name: &String::from("it.conf"),
-        git_username: &mut String::from(""),
-        repo_url: &mut String::from(""),
-        repo_name: &mut String::from(""),
-        git_access_token: &mut String::from(""),
-        all_git_creds_available: true,
-        git_creds_unavailable: Vec::new(),
-        file_ext_to_markdown: HashMap::from([
-            ("py", "python"),
-            ("rs", "rust"),
-            ("c", "c"),
-            ("cpp", "cpp"),
-            ("js", "js"),
-            ("ts", "ts"),
-            ("go", "go"),
-            ("java", "java"),
-            ("html", "html"),
-            ("css", "css"),
-        ]),
-    };
+    let mut config: Config = Config::new(cwd);
 
     config.set_from_file();
     config.set_git_credentials();

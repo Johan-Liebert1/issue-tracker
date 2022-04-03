@@ -11,21 +11,52 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct Config<'a> {
+pub struct Config {
     pub folders_to_ignore: HashSet<&'static str>,
     pub allowed_extensions: Vec<&'static str>,
-    pub cwd: &'a String,
-    pub config_file_name: &'a String,
-    pub git_username: &'a mut String,
-    pub repo_url: &'a mut String,
-    pub repo_name: &'a mut String,
-    pub git_access_token: &'a mut String,
+    pub cwd: String,
+    pub config_file_name: String,
+    pub git_username: String,
+    pub repo_url: String,
+    pub repo_name: String,
+    pub git_access_token: String,
     pub all_git_creds_available: bool,
     pub git_creds_unavailable: Vec<&'static str>,
     pub file_ext_to_markdown: HashMap<&'static str, &'static str>,
 }
 
-impl Config<'_> {
+impl Config {
+    pub fn new(cwd: &str) -> Self {
+        let config = Config {
+            folders_to_ignore: HashSet::from(["node_modules", "target", "dist", "env", "tests"]),
+            allowed_extensions: vec![
+                ".py", ".rs", ".c", ".cpp", ".js", ".ts", ".tsx", ".sql", ".go",
+            ],
+            cwd: String::from(cwd),
+            config_file_name: String::from("it.conf"),
+            git_username: String::from(""),
+            repo_url: String::from(""),
+            repo_name: String::from(""),
+            git_access_token: String::from(""),
+            all_git_creds_available: true,
+            git_creds_unavailable: Vec::new(),
+            file_ext_to_markdown: HashMap::from([
+                ("py", "python"),
+                ("rs", "rust"),
+                ("c", "c"),
+                ("cpp", "cpp"),
+                ("js", "js"),
+                ("ts", "ts"),
+                ("go", "go"),
+                ("java", "java"),
+                ("html", "html"),
+                ("css", "css"),
+            ]),
+        };
+
+        config
+    }
+
     /// 1. Checks if the provided cwd exists or not
     /// 2. Checks if a config file exists, and if it does, gets the config from that file
     pub fn set_from_file(&mut self) {
