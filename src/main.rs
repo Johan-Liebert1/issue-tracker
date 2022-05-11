@@ -33,7 +33,7 @@ fn main() {
     config.set_from_file();
     config.set_git_credentials();
 
-    println!("Config = {:#?}", config);
+    // println!("Config = {:#?}", config);
 
     std::env::set_current_dir(&config.cwd).unwrap();
 

@@ -6,13 +6,20 @@ use crate::{
     types::{config::Config, misc::VectorHashMap},
 };
 
-// TODO: make this return either a bool or a string so we can check if input == "exit" to exit the program
-pub fn prompt_yes_or_no(prompt: &str) -> (bool, String) {
+#[inline]
+pub fn prompt_user(prompt: &str) -> String {
     let mut user_input = String::new();
 
     print!("{}", prompt);
     std::io::stdout().flush().unwrap();
     std::io::stdin().read_line(&mut user_input).unwrap();
+
+    user_input
+}
+
+// TODO: make this return either a bool or a string so we can check if input == "exit" to exit the program
+pub fn prompt_yes_or_no(prompt: &str) -> (bool, String) {
+    let user_input = prompt_user(prompt);
 
     if user_input.trim().to_lowercase() == "y" {
         (true, user_input)
