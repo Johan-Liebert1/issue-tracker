@@ -1,5 +1,6 @@
 use crate::{
     constants::NUM_FILE_LINES,
+    helpers,
     types::{
         config::Config,
         issue::{FileLines, Issue, IssueType},
@@ -46,6 +47,8 @@ pub fn find_todos(file_contents: &String, file_name: &str) -> Vec<Issue> {
 
                 let mut file_lines: Vec<FileLines> = Vec::new();
 
+                let mut smallest_starting_whitespace_len = usize::max_value();
+
                 for i in 0..=NUM_FILE_LINES {
                     let index = line_number + i;
 
@@ -53,10 +56,29 @@ pub fn find_todos(file_contents: &String, file_name: &str) -> Vec<Issue> {
                         break;
                     }
 
+                    let line_text = enumerated_file_contents[index];
+
+                    let starting_whitespace_len = helpers::get_starting_whitespace_len(&line_text);
+
+                    if line_text.len() != 0 {
+                        smallest_starting_whitespace_len =
+                            helpers::min(smallest_starting_whitespace_len, starting_whitespace_len);
+                    }
+
                     file_lines.push(FileLines {
                         line_number: index,
-                        line_text: enumerated_file_contents[index].to_string(),
-                    })
+                        line_text: line_text.trim_start().to_string(),
+                        starting_whitespace_len,
+                    });
+                }
+
+                for line in &mut file_lines {
+                    line.line_text =
+                        String::from("    ").repeat(if line.starting_whitespace_len != 0 {
+                            line.starting_whitespace_len - smallest_starting_whitespace_len
+                        } else {
+                            0
+                        }) + &line.line_text;
                 }
 
                 vector.push(Issue {

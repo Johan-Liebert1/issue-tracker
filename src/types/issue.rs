@@ -29,6 +29,7 @@ impl IssueType {
 pub struct FileLines {
     pub line_number: usize,
     pub line_text: String,
+    pub starting_whitespace_len: usize,
 }
 
 #[derive(Debug)]

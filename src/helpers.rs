@@ -72,3 +72,28 @@ pub fn string_from_vecu8(string: &mut String, vector: &Vec<u8>) {
     let str1 = String::from(std::str::from_utf8(vector).unwrap());
     string.push_str(&str1.trim());
 }
+
+pub fn get_starting_whitespace_len(s: &str) -> usize {
+    let mut index = 0;
+
+    for char in s.chars() {
+        if !char.is_whitespace() {
+            break;
+        }
+
+        index += 1;
+    }
+
+    return index as usize;
+}
+
+pub fn min<T>(a: T, b: T) -> T
+where
+    T: PartialEq + PartialOrd,
+{
+    if a < b {
+        a
+    } else {
+        b
+    }
+}
