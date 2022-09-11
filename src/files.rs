@@ -11,7 +11,7 @@ use regex::Regex;
 use std::fs;
 
 pub fn find_todos(file_contents: &String, file_name: &str) -> Vec<Issue> {
-    let re = Regex::new(r#"([/#"-]*)[\s]*(TOD(O*)|FIXM(E*)):(.*)"#).unwrap();
+    let re = Regex::new(r#"([/#"{*-]*)[\s]*(TOD(O*)|FIXM(E*)):(.*)"#).unwrap();
     let file_name_str = String::from(file_name);
 
     // Capture 0 - Entire match
@@ -46,7 +46,7 @@ pub fn find_todos(file_contents: &String, file_name: &str) -> Vec<Issue> {
 
                 let mut file_lines: Vec<FileLines> = Vec::new();
 
-                for i in 1..=NUM_FILE_LINES {
+                for i in 0..=NUM_FILE_LINES {
                     let index = line_number + i;
 
                     if index >= enumerated_file_contents.len() {
@@ -75,7 +75,7 @@ pub fn find_todos(file_contents: &String, file_name: &str) -> Vec<Issue> {
 }
 
 pub fn is_file_ext_valid(path: &str, config: &Config) -> bool {
-    for ext in config.allowed_extensions.iter() {
+    for ext in &config.allowed_extensions {
         if path.ends_with(ext) {
             return true;
         }

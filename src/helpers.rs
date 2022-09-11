@@ -53,10 +53,11 @@ pub fn print_all_issues(all_files_issues: &mut VectorHashMap, config: &Config, c
 
             if create_issue {
                 // color_print(LIGHT_GREEN, create_issue_prompt, false);
-                let (create, input) = prompt_yes_or_no(create_issue_prompt);
+                let (create, _) = prompt_yes_or_no(create_issue_prompt);
+
                 if create {
-                    println!("{:?}", github::create_issue(issue, &config).unwrap());
-                } else if input.trim().to_lowercase() == "exit" {
+                    github::create_issue(issue, &config).unwrap();
+                } else {
                     break 'outer;
                 }
             }

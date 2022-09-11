@@ -3,7 +3,7 @@ use std::{
     process::{self, Output},
 };
 
-use crate::types::{config::Config, issue::Issue};
+use crate::{types::{config::Config, issue::Issue}, helpers::color_print, constants::GREEN};
 
 pub fn get_username() -> Result<Output, std::io::Error> {
     process::Command::new("git")
@@ -13,8 +13,9 @@ pub fn get_username() -> Result<Output, std::io::Error> {
         .output()
 }
 
-pub fn get_repo_url() -> Result<Output, std::io::Error> {
+pub fn get_repo_url(cwd: &String) -> Result<Output, std::io::Error> {
     process::Command::new("git")
+        .current_dir(cwd)
         .arg("config")
         .arg("--get")
         .arg("remote.origin.url")
@@ -31,13 +32,21 @@ pub fn create_issue(issue: &Issue, config: &Config) -> Result<(), ()> {
     json_body.insert("body", &issue_comment);
 
     let client = reqwest::blocking::Client::new();
+
+    // https://api.github.com/repos/OWNER/REPO/issues 
+    let request_url = format!(
+        "https://api.github.com/repos/{}/{}/issues",
+        config.git_username, config.repo_name
+    );
+
+    let token = format!("Bearer {}", &config.git_access_token);
+
+    println!("request_url = {}, token = {}", &request_url, &token);
+
     let request_builder = client
-        .post(&format!(
-            "https://api.github.com/repos/{}/{}/issues",
-            config.git_username,  "TestRespository" //config.repo_name
-        ))
+        .post(&request_url)
         .header("Accept", "application/vnd.github.v3+json")
-        .basic_auth(&config.git_username, Some(&config.git_access_token))
+        .header("Authorization", &token)
         .header(
             "User-Agent", 
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36"
@@ -46,9 +55,16 @@ pub fn create_issue(issue: &Issue, config: &Config) -> Result<(), ()> {
 
     let res = request_builder.send();
 
-    let resp_json = res.unwrap().json::<serde_json::Value>().unwrap();
+    match res {
+        Ok(resp) => {
+            resp.json::<serde_json::Value>().unwrap();
+            color_print(GREEN, &String::from("Successfully created issue"), true);
+        },
 
-    println!("res = {:#?}\n", resp_json);
+        Err(error) => {
+            println!("Request errored out with error {}", error);
+        }
+    }
 
     Ok(())
 }

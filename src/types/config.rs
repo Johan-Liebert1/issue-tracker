@@ -28,7 +28,7 @@ pub struct Config {
 impl Config {
     pub fn new(cwd: &str) -> Self {
         let config = Config {
-            folders_to_ignore: HashSet::from(["node_modules", "target", "dist", "env", "tests"]),
+            folders_to_ignore: HashSet::from(["node_modules", "target", "dist", "env"]),
             allowed_extensions: vec![
                 ".py", ".rs", ".c", ".cpp", ".js", ".ts", ".tsx", ".sql", ".go",
             ],
@@ -51,6 +51,9 @@ impl Config {
                 ("java", "java"),
                 ("html", "html"),
                 ("css", "css"),
+                ("tsx", "tsx"),
+                ("jsx", "jsx"),
+                ("sql", "sql"),
             ]),
         };
 
@@ -94,7 +97,7 @@ impl Config {
             }
         };
 
-        match github::get_repo_url() {
+        match github::get_repo_url(&self.cwd) {
             Ok(u) => {
                 helpers::string_from_vecu8(&mut self.repo_url, &u.stdout);
 
